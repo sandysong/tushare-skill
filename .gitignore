@@ -10,14 +10,6 @@ tests/
 test-results/
 *.log
 
-# API lists (generated)
-tested-apis-list.txt
-untested-apis.txt
-
-# Analysis reports
-京东方A技术分析报告_*.md
-OPTIMIZATION_REPORT.md
-
 # OS files
 .DS_Store
 Thumbs.db

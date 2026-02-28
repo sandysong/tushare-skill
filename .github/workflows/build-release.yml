@@ -1,0 +1,204 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+            executable: tushare
+          - os: macos-13
+            platform: darwin
+            arch: x64
+            executable: tushare
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            executable: tushare
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            executable: tushare.exe
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build executable
+        run: bun run build
+
+      - name: Rename executable with platform info
+        run: |
+          mkdir -p dist
+          cp tushare${{ matrix.platform == 'win32' && '.exe' || '' }} dist/tushare-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.platform == 'win32' && '.exe' || '' }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tushare-${{ matrix.platform }}-${{ matrix.arch }}
+          path: dist/tushare-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.platform == 'win32' && '.exe' || '' }}
+
+  package:
+    name: Package Skills
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Setup Python for packaging
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Create skill packages
+        run: |
+          mkdir -p release
+
+          # Package for each platform
+          for platform_arch in darwin-arm64 darwin-x64 linux-x64 win32-x64; do
+            # Create skill directory structure
+            mkdir -p skill-temp/scripts
+            mkdir -p skill-temp/skill-references
+
+            # Copy SKILL.md and references
+            cp skill-references/SKILL.md skill-temp/ || cp skill-references/skill.md skill-temp/ 2>/dev/null || echo "SKILL.md not found, skipping..."
+            cp -r skill-references/* skill-temp/skill-references/ 2>/dev/null || true
+
+            # Copy executable
+            if [[ "$platform_arch" == *"win32"* ]]; then
+              cp artifacts/tushare-$platform_arch/tushare-$platform_arch.exe skill-temp/scripts/tushare.exe
+            else
+              cp artifacts/tushare-$platform_arch/tushare-$platform_arch skill-temp/scripts/tushare
+              chmod +x skill-temp/scripts/tushare
+            fi
+
+            # Create .skill file
+            cd skill-temp
+            zip -r ../release/tushare-cli-$platform_arch.skill .
+            cd ..
+            rm -rf skill-temp
+          done
+
+          # Also create a universal package (without executable)
+          mkdir -p universal/scripts
+          cp -r skill-references universal/
+          echo '#!/bin/bash
+          # Please download the appropriate executable for your platform from the release page
+          # or build from source: bun install && bun run build
+          echo "Please download the executable for your platform"
+          ' > universal/scripts/tushare
+          chmod +x universal/scripts/tushare
+          cd universal && zip -r ../release/tushare-cli-universal.skill .
+          cd .. && rm -rf universal
+
+      - name: Upload skill packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: skill-packages
+          path: release/*.skill
+
+  release:
+    name: Create Release
+    needs: [build, package]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Tushare CLI Skill ${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## 🎉 Release ${{ steps.get_version.outputs.VERSION }}
+
+            ### 📥 下载说明
+
+            请根据您的操作系统下载对应的 `.skill` 文件：
+
+            | 平台 | 文件 | 说明 |
+            |------|------|------|
+            | macOS (Apple Silicon) | `tushare-cli-darwin-arm64.skill` | M1/M2/M3 Mac |
+            | macOS (Intel) | `tushare-cli-darwin-x64.skill` | Intel Mac |
+            | Linux (x64) | `tushare-cli-linux-x64.skill` | Ubuntu, Debian 等 |
+            | Windows (x64) | `tushare-cli-win32-x64.skill` | Windows 10/11 |
+            | 通用版 | `tushare-cli-universal.skill` | 需自行编译可执行文件 |
+
+            ### 🚀 安装方法
+
+            1. 下载对应平台的 `.skill` 文件
+            2. 解压到 Claude Code skills 目录：
+               ```bash
+               cd ~/.claude/skills
+               unzip /path/to/tushare-cli-*.skill
+               ```
+            3. 配置 Tushare Token：
+               ```bash
+               export TUSHARE_TOKEN="your_token_here"
+               ```
+
+            详细安装说明请查看 [INSTALL.md](INSTALL.md)
+
+            ### ✨ 功能特点
+
+            - ✅ 支持 211+ Tushare Pro API 接口
+            - ✅ 零依赖部署，单一可执行文件
+            - ✅ 多种输出格式：JSON、Table、CSV、Markdown
+            - ✅ 自动参数转换
+            - ✅ 跨平台支持
+
+            ### 📚 文档
+
+            - [README](README.md)
+            - [安装指南](INSTALL.md)
+            - [API 索引](skill-references/api-index.md)
+
+            ### 🔧 本次更新
+
+            查看完整更新日志：[CHANGELOG.md](CHANGELOG.md)
+          files: |
+            artifacts/skill-packages/*.skill
+            artifacts/tushare-*/tushare-*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
