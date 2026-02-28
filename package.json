@@ -1,0 +1,32 @@
+{
+  "name": "tushare-cli",
+  "version": "1.0.0",
+  "description": "Tushare Pro CLI - 直接调用 Tushare HTTP API 的命令行工具",
+  "type": "module",
+  "module": "src/index.ts",
+  "bin": {
+    "tushare": "src/index.ts"
+  },
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outfile tushare --compile",
+    "build:all": "bun build src/index.ts --outfile dist/tushare.js --target node",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "tushare",
+    "cli",
+    "finance",
+    "stock",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
