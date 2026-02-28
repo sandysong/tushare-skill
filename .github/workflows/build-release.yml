@@ -89,7 +89,7 @@ jobs:
             mkdir -p skill-temp/skill-references
 
             # Copy SKILL.md and references
-            cp skill-references/SKILL.md skill-temp/ || cp skill-references/skill.md skill-temp/ 2>/dev/null || echo "SKILL.md not found, skipping..."
+            cp SKILL.md skill-temp/ || echo "SKILL.md not found, skipping..."
             cp -r skill-references/* skill-temp/skill-references/ 2>/dev/null || true
 
             # Copy executable
