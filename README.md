@@ -18,16 +18,33 @@
 
 ### 一键安装（推荐）
 
-使用安装脚本自动完成安装：
+#### macOS / Linux
+
+使用 bash 脚本自动完成安装：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/sandysong/tushare-skill/main/install.sh | bash
 ```
 
+#### Windows
+
+使用 PowerShell 脚本自动完成安装：
+
+```powershell
+# 在 PowerShell 中运行
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sandysong/tushare-skill/main/install.ps1" -OutFile "install.ps1"
+.\install.ps1
+```
+
+或者一行命令：
+```powershell
+iex (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sandysong/tushare-skill/main/install.ps1" -UseBasicParsing).Content
+```
+
 安装脚本会自动：
 - 检测您的操作系统和架构
 - 下载对应的 `.skill` 文件
-- 解压到 `~/.claude/skills/` 目录
+- 解压到 skills 目录（`~/.claude/skills/` 或 `%USERPROFILE%\.claude\skills\`）
 - 配置执行权限
 - 验证安装
 
@@ -35,12 +52,13 @@ curl -fsSL https://raw.githubusercontent.com/sandysong/tushare-skill/main/instal
 
 从 [GitHub Releases](https://github.com/sandysong/tushare-skill/releases) 下载对应平台的 `.skill` 文件：
 
+#### macOS / Linux
+
 ```bash
 # 1. 下载适合您平台的 tushare-cli-*.skill 文件
 # macOS (Apple Silicon): tushare-cli-darwin-arm64.skill
 # macOS (Intel): tushare-cli-darwin-x64.skill
 # Linux: tushare-cli-linux-x64.skill
-# Windows: tushare-cli-win32-x64.skill
 
 # 2. 解压到 Claude Code skills 目录
 cd ~/.claude/skills
@@ -51,6 +69,22 @@ export TUSHARE_TOKEN="your_token_here"
 
 # 4. 验证安装
 ~/.claude/skills/tushare-cli/scripts/tushare --version
+```
+
+#### Windows
+
+```powershell
+# 1. 下载 tushare-cli-win32-x64.skill 文件
+
+# 2. 解压到 Claude Code skills 目录
+cd $env:USERPROFILE\.claude\skills
+Expand-Archive -Path "C:\path\to\tushare-cli-win32-x64.skill" -DestinationPath "."
+
+# 3. 配置 Tushare Token（永久）
+[System.Environment]::SetEnvironmentVariable('TUSHARE_TOKEN', 'your_token_here', 'User')
+
+# 4. 验证安装
+.\tushare-cli\scripts\tushare.exe --version
 ```
 
 ### 详细安装指南
