@@ -16,16 +16,35 @@
 
 ## 📦 安装
 
-### 快速安装
+### 一键安装（推荐）
 
-下载最新的 `.skill` 文件并解压：
+使用安装脚本自动完成安装：
 
 ```bash
-# 1. 下载 tushare-cli.skill 文件
+curl -fsSL https://raw.githubusercontent.com/sandysong/tushare-skill/main/install.sh | bash
+```
+
+安装脚本会自动：
+- 检测您的操作系统和架构
+- 下载对应的 `.skill` 文件
+- 解压到 `~/.claude/skills/` 目录
+- 配置执行权限
+- 验证安装
+
+### 手动安装
+
+从 [GitHub Releases](https://github.com/sandysong/tushare-skill/releases) 下载对应平台的 `.skill` 文件：
+
+```bash
+# 1. 下载适合您平台的 tushare-cli-*.skill 文件
+# macOS (Apple Silicon): tushare-cli-darwin-arm64.skill
+# macOS (Intel): tushare-cli-darwin-x64.skill
+# Linux: tushare-cli-linux-x64.skill
+# Windows: tushare-cli-win32-x64.skill
 
 # 2. 解压到 Claude Code skills 目录
 cd ~/.claude/skills
-unzip /path/to/tushare-cli.skill
+unzip /path/to/tushare-cli-*.skill
 
 # 3. 配置 Tushare Token
 export TUSHARE_TOKEN="your_token_here"
