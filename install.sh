@@ -125,7 +125,7 @@ download_file() {
 
 # 安装 skill
 install_skill() {
-    print_step "下载 Tushare CLI Skill v${VERSION}..."
+    print_step "下载 Tushare CLI Skill ${VERSION}..."
 
     # 创建临时目录
     TEMP_DIR="$(mktemp -d)"
