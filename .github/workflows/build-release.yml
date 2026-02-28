@@ -84,13 +84,13 @@ jobs:
 
           # Package for each platform
           for platform_arch in darwin-arm64 darwin-x64 linux-x64 win32-x64; do
-            # Create skill directory structure
+            # Create skill directory structure (matches dist/tushare-cli/)
             mkdir -p skill-temp/scripts
-            mkdir -p skill-temp/skill-references
+            mkdir -p skill-temp/references
 
             # Copy SKILL.md and references
-            cp SKILL.md skill-temp/ || echo "SKILL.md not found, skipping..."
-            cp -r skill-references/* skill-temp/skill-references/ 2>/dev/null || true
+            cp SKILL.md skill-temp/
+            cp -r references/* skill-temp/references/
 
             # Copy executable
             if [[ "$platform_arch" == *"win32"* ]]; then
@@ -109,7 +109,9 @@ jobs:
 
           # Also create a universal package (without executable)
           mkdir -p universal/scripts
-          cp -r skill-references universal/
+          mkdir -p universal/references
+          cp SKILL.md universal/
+          cp -r references/* universal/references/
           echo '#!/bin/bash
           # Please download the appropriate executable for your platform from the release page
           # or build from source: bun install && bun run build

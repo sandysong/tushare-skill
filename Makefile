@@ -9,6 +9,16 @@ build:
 	bun run build
 	@echo "✅ Build complete: ./tushare"
 
+# 准备构建目录
+prepare-dist:
+	@echo "📦 Preparing distribution directory..."
+	@mkdir -p dist/tushare-cli/scripts
+	@mkdir -p dist/tushare-cli/references
+	@cp SKILL.md dist/tushare-cli/
+	@cp -r references/* dist/tushare-cli/references/
+	@if [ -f tushare ]; then cp tushare dist/tushare-cli/scripts/ && chmod +x dist/tushare-cli/scripts/tushare; fi
+	@echo "✅ Distribution directory ready at dist/tushare-cli/"
+
 # 清理
 clean:
 	@echo "🧹 Cleaning..."
@@ -57,13 +67,10 @@ release: clean install generate build test
 	@echo "✅ Release build complete!"
 
 # 安装到本地
-install-local: build
+install-local: build prepare-dist
 	@echo "📦 Installing to ~/.claude/skills/..."
-	@mkdir -p ~/.claude/skills/tushare-cli/scripts
-	@mkdir -p ~/.claude/skills/tushare-cli/skill-references
-	@cp -r skill-references/* ~/.claude/skills/tushare-cli/skill-references/
-	@cp tushare ~/.claude/skills/tushare-cli/scripts/
-	@chmod +x ~/.claude/skills/tushare-cli/scripts/tushare
+	@rm -rf ~/.claude/skills/tushare-cli
+	@cp -r dist/tushare-cli ~/.claude/skills/
 	@echo "✅ Installed to ~/.claude/skills/tushare-cli/"
 
 # 卸载

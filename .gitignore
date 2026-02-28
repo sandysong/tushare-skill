@@ -3,7 +3,11 @@ node_modules/
 bun.lock
 
 # Build artifacts
+dist/
 *.tsbuildinfo
+tushare
+tushare.exe
+*.skill
 
 # Development files
 tests/
