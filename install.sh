@@ -165,7 +165,7 @@ install_skill() {
     fi
 
     # 解压 skill 文件（-o 自动覆盖，-q 静默模式）
-    if ! unzip -o -q "$SKILL_PATH" -d "${SKILLS_DIR}/"; then
+    if ! unzip -o -q "$SKILL_PATH" -d "${SKILLS_DIR}/${SKILL_NAME}/"; then
         print_error "解压失败"
         exit 1
     fi
